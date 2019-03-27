@@ -7,6 +7,7 @@ import javax.inject.Inject;
 import org.springframework.stereotype.Service;
 
 import net.creamhouse.shorturl.domain.BoardVO;
+import net.creamhouse.shorturl.domain.Criteria;
 import net.creamhouse.shorturl.persistence.BoardDAO;
 
 @Service
@@ -44,6 +45,18 @@ public class BoardServiceImpl implements BoardService {
 	public List<BoardVO> listAll() throws Exception {
 		// TODO Auto-generated method stub
 		return dao.listAll();
+	}
+
+	@Override
+	public List<BoardVO> listCriteria(Criteria cri) throws Exception {
+		// TODO Auto-generated method stub
+		return dao.listCriteria(cri);
+	}
+
+	@Override
+	public int listCountCriteria(Criteria cri) throws Exception {
+		// TODO Auto-generated method stub
+		return dao.countPaging(cri);
 	}
 
 }

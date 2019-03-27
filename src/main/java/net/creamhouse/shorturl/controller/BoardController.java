@@ -6,11 +6,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import net.creamhouse.shorturl.domain.BoardVO;
+import net.creamhouse.shorturl.domain.Criteria;
+import net.creamhouse.shorturl.domain.PageMaker;
 import net.creamhouse.shorturl.service.BoardService;
 
 @Controller
@@ -42,13 +45,33 @@ public class BoardController {
 		logger.info("list all....");
 	}
 	
-	@RequestMapping(value = "/read", method = RequestMethod.GET)
-	public String read(Integer bno, Model model) throws Exception {
+	@RequestMapping(value = "/listCri", method = RequestMethod.GET)
+	public void listALL(Criteria cri, Model model) throws Exception {
+		model.addAttribute("list", service.listCriteria(cri));
+		logger.info("listCri....");
+	}
+	
+	@RequestMapping(value = "/listPage", method = RequestMethod.GET)
+	public void listPage(Criteria cri, Model model) throws Exception {
+		logger.info(cri.toString());
+				
+		model.addAttribute("list", service.listCriteria(cri));
+		
+		PageMaker pageMaker = new PageMaker();
+		pageMaker.setCri(cri);
+		pageMaker.setTotalCount(service.listCountCriteria(cri));		
+		
+		model.addAttribute("pageMaker", pageMaker);
+	}
+	
+	@RequestMapping(value = "/readPage", method = RequestMethod.GET)
+	public String read(Integer bno, @ModelAttribute("cri") Criteria cri, Model model) throws Exception {
 		logger.info("bno=" + bno);
 		model.addAttribute("boardVO", service.read(bno));
 		
-		return "/board/read";
+		return "/board/readPage";
 	}
+	
 	
 	@RequestMapping(value = "/modify", method = RequestMethod.GET)
 	public String modify(Integer bno, Model model) throws Exception {		
@@ -65,11 +88,32 @@ public class BoardController {
 		return "redirect:/board/listAll";
 	}
 	
-	@RequestMapping(value = "/remove", method = RequestMethod.POST)
-	public String remove(Integer bno) throws Exception {
+	@RequestMapping(value = "/modifyPage", method = RequestMethod.GET)
+	public String modifyPagingGET(Integer bno, @ModelAttribute("cri") Criteria cri, Model model) throws Exception {		
+		model.addAttribute("boardVO",service.read(bno));
+		
+		return "/board/modifyPage";
+	}
+	
+	@RequestMapping(value = "/modifyPage", method = RequestMethod.POST)
+	public String modifyPagingPOST(BoardVO board, Criteria cri, RedirectAttributes rttr) throws Exception {		
+		service.modify(board);	
+		
+		rttr.addAttribute("page",cri.getPage());
+		rttr.addAttribute("perPageNum", cri.getPerPageNum());
+		
+		return "redirect:/board/listPage";
+	}
+	
+	@RequestMapping(value = "/removePage", method = RequestMethod.POST)
+	public String remove(Integer bno, Criteria cri, RedirectAttributes rttr) throws Exception {
 		service.remove(bno);
 		
-		return "redirect:/board/listAll";
+		rttr.addAttribute("page", cri.getPage());
+		rttr.addAttribute("perPageNum", cri.getPerPageNum());
+		rttr.addFlashAttribute("msg","Success");
+		
+		return "redirect:/board/listPage";
 	}
 	
 	
